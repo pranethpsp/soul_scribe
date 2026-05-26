@@ -15,7 +15,7 @@ from pymilvus import (
 
 MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
 MILVUS_PORT = int(os.getenv("MILVUS_PORT", "19530"))
-EMBEDDING_DIM = 1536
+EMBEDDING_DIM = 384
 
 COLLECTIONS = {
     "user_entries": {

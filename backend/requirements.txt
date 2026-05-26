@@ -1,14 +1,14 @@
 fastapi==0.115.5
 uvicorn[standard]==0.32.1
 pydantic==2.10.3
-pydantic-ai[anthropic,openai]==0.0.15
-pydantic-evals==0.0.15
+pydantic-ai[anthropic]==0.0.55
+pydantic-evals==0.0.55
 sqlalchemy[asyncio]==2.0.36
 alembic==1.14.0
 asyncpg==0.30.0
 pymilvus==2.4.9
-openai==1.57.2
 anthropic==0.40.0
+sentence-transformers==3.3.1
 langfuse==2.57.5
 opentelemetry-api==1.29.0
 opentelemetry-sdk==1.29.0

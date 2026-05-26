@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from openai import AsyncOpenAI
+from sentence_transformers import SentenceTransformer
 
 from db.milvus_client import SoulMilvus
 from models.orm import Entry, KnowledgeSource
@@ -12,22 +13,22 @@ from models.schemas import RetrievedEntry, RetrievedTheory
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-_openai: Optional[AsyncOpenAI] = None
+_st_model: Optional[SentenceTransformer] = None
 
 
-def _get_openai() -> AsyncOpenAI:
-    global _openai
-    if _openai is None:
-        _openai = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    return _openai
+def _get_model() -> SentenceTransformer:
+    global _st_model
+    if _st_model is None:
+        _st_model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _st_model
 
 
 async def embed(text: str) -> list[float]:
-    resp = await _get_openai().embeddings.create(
-        model="text-embedding-3-small",
-        input=text[:8000],
+    loop = asyncio.get_event_loop()
+    vec = await loop.run_in_executor(
+        None, lambda: _get_model().encode(text[:8000], normalize_embeddings=True)
     )
-    return resp.data[0].embedding
+    return vec.tolist()
 
 
 class WisdomRetriever:
