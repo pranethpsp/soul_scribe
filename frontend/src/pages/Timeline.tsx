@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { Clock } from 'lucide-react'
-import { listEntries } from '../../lib/api'
-import type { Entry, EntryType } from '../../lib/types'
+import { listEntries } from '../lib/api'
+import type { Entry, EntryType } from '../lib/types'
 
 const ENTRY_TYPE_COLORS: Record<EntryType, string> = {
   thought: 'bg-blue-900/50 text-blue-300 border border-blue-700/50',
@@ -119,7 +119,7 @@ export default function Timeline() {
   const groups = groupByMonth(filtered)
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
@@ -159,7 +159,7 @@ export default function Timeline() {
       )}
 
       {/* Timeline groups */}
-      <div className="flex-1 overflow-y-auto space-y-8 min-h-0">
+      <div className="space-y-8">
         {Array.from(groups.entries()).map(([month, monthEntries]) => (
           <section key={month}>
             <h2 className="font-serif text-soul-gold text-lg mb-4 sticky top-0 bg-soul-bg/90 backdrop-blur-sm py-2">

@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { Users, Plus, X, ChevronRight, Loader2 } from 'lucide-react'
-import { listPeople, createPerson, getPersonBrief } from '../../lib/api'
-import type { Person } from '../../lib/types'
+import { listPeople, createPerson, getPersonBrief } from '../lib/api'
+import type { Person } from '../lib/types'
 
 const RELATIONSHIP_COLORS: Record<string, string> = {
   friend: 'bg-blue-900/50 text-blue-300 border border-blue-700/50',
@@ -177,7 +177,7 @@ function PersonBriefPanel({ person, onClose }: { person: Person; onClose: () => 
       initial={{ opacity: 0, x: 24 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 24 }}
-      className="card w-80 flex-shrink-0 self-start sticky top-0 space-y-4"
+      className="card w-full lg:w-80 lg:flex-shrink-0 lg:self-start lg:sticky lg:top-0 space-y-4"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -304,7 +304,7 @@ export default function People() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -318,9 +318,9 @@ export default function People() {
         </button>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Grid */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 min-w-0">
           {isLoading && (
             <div className="flex items-center justify-center py-20">
               <div className="w-6 h-6 border-2 border-soul-gold border-t-transparent rounded-full animate-spin" />

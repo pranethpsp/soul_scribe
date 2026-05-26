@@ -14,17 +14,12 @@ from observability.otel_setup import init_otel
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialise databases
     await init_db()
     milvus = get_milvus()
     try:
         milvus.init_collections()
     except Exception as e:
         print(f"Milvus init warning: {e}")
-
-    # Initialise observability
-    init_otel(app=app, engine=engine)
-
     yield
 
 
@@ -42,6 +37,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Instrument BEFORE first request — must be called at module level, not inside lifespan
+init_otel(app=app, engine=engine)
 
 app.include_router(entries.router, prefix="/api/entries", tags=["entries"])
 app.include_router(oracle.router, prefix="/api/oracle", tags=["oracle"])

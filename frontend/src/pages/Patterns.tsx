@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { Brain, TrendingUp, AlertCircle } from 'lucide-react'
-import { getPatterns, getPsychologyProfile } from '../../lib/api'
-import type { Pattern } from '../../lib/types'
+import { getPatterns, getPsychologyProfile } from '../lib/api'
+import type { Pattern } from '../lib/types'
 
 const PATTERN_COLORS: Record<string, string> = {
   emotional_cycle: 'bg-blue-900/50 text-blue-300 border border-blue-700/50',
@@ -165,7 +165,7 @@ export default function Patterns() {
   const isLoading = patternsLoading || profileLoading
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <TrendingUp className="w-5 h-5 text-soul-gold" />
@@ -179,7 +179,7 @@ export default function Patterns() {
       )}
 
       {!isLoading && (
-        <div className="flex-1 overflow-y-auto space-y-8 min-h-0">
+        <div className="space-y-8">
           {/* Psychology profile */}
           {psychProfile && Object.keys(psychProfile).length > 0 ? (
             <PsychologyCard profile={psychProfile as PsychologyProfile} />

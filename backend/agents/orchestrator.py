@@ -86,6 +86,7 @@ async def _get_psychology_summary(db: AsyncSession, user_id: str) -> str:
 async def handle_journal(
     content: str, user_id: str, db: AsyncSession, milvus: SoulMilvus
 ) -> dict:
+    await _get_or_create_user(db, user_id)
     tracer = get_tracer()
     with tracer.start_as_current_span("orchestrator.journal"):
         # 1. PII guard

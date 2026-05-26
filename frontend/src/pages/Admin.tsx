@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
 import { ShieldAlert, Upload, Trash2, Activity, Zap, Loader2, FileText } from 'lucide-react'
-import { listVault, uploadVault, removeFromVault, triggerPatternAnalysis, getMetrics } from '../../lib/api'
+import { listVault, uploadVault, removeFromVault, triggerPatternAnalysis, getMetrics } from '../lib/api'
 
 const DOMAIN_OPTIONS = [
   'psychology',
@@ -413,7 +413,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Warning banner */}
       <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-900/20 border border-amber-600/40">
         <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0" />

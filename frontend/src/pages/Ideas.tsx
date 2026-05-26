@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { Lightbulb, PenLine, ArrowUpRight } from 'lucide-react'
-import { listEntries } from '../../lib/api'
-import type { Entry } from '../../lib/types'
+import { listEntries } from '../lib/api'
+import type { Entry } from '../lib/types'
 
 function IdeaCard({ entry, index }: { entry: Entry; index: number }) {
   const title = entry.key_insight ?? entry.raw_content.slice(0, 80)
@@ -86,7 +86,7 @@ export default function Ideas() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function Ideas() {
 
       {/* Grid */}
       {!isLoading && sorted.length > 0 && (
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {sorted.map((entry, i) => (
               <IdeaCard key={entry.id} entry={entry} index={i} />

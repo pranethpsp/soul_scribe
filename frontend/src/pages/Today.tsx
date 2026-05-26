@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import { Feather, Send } from 'lucide-react'
-import { createEntry, listEntries } from '../../lib/api'
-import type { Entry, EntryType } from '../../lib/types'
+import { createEntry, listEntries } from '../lib/api'
+import type { Entry, EntryType } from '../lib/types'
 
 const DAILY_PROMPTS = [
   'What stayed with you today?',
@@ -105,17 +105,17 @@ export default function Today() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Daily prompt banner */}
-      <div className="flex items-center gap-3 px-1">
+      <div className="flex items-center gap-3">
         <Feather className="w-4 h-4 text-soul-gold flex-shrink-0" />
         <p className="text-soul-ivory-dim text-sm italic">{prompt}</p>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Left: Composer */}
-        <div className="flex flex-col gap-4 w-full lg:w-1/2 xl:w-2/5">
-          <div className="card flex flex-col gap-4 h-full">
+        <div className="flex flex-col gap-4 w-full lg:w-2/5 xl:w-1/3">
+          <div className="card flex flex-col gap-4">
             <h2 className="text-soul-ivory font-serif text-lg">Today's entry</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3 flex-1">
               <textarea
@@ -167,7 +167,7 @@ export default function Today() {
         </div>
 
         {/* Right: Entries list */}
-        <div className="flex flex-col gap-4 flex-1 overflow-y-auto min-h-0">
+        <div className="flex flex-col gap-4 flex-1">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-soul-ivory font-serif text-lg">
               {format(new Date(), 'EEEE, MMMM d')}

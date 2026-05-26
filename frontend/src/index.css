@@ -1,34 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-soul-bg text-soul-ivory font-sans;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3 {
+  h1, h2, h3, h4 {
     @apply font-serif;
   }
-  ::-webkit-scrollbar { width: 4px; }
+  /* Thin scrollbar everywhere */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #30363D transparent;
+  }
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { @apply bg-soul-border rounded-full; }
 }
 
 @layer components {
+  /* ── Cards ── */
   .card {
+    @apply bg-soul-surface border border-soul-border rounded-2xl p-5 shadow-sm;
+  }
+  .card-sm {
     @apply bg-soul-surface border border-soul-border rounded-xl p-4;
   }
+
+  /* ── Buttons ── */
   .btn-gold {
-    @apply bg-soul-gold text-soul-bg font-medium px-4 py-2 rounded-lg hover:bg-soul-gold-dim transition-colors;
+    @apply bg-soul-gold text-soul-bg font-semibold px-4 py-2.5 rounded-xl
+           hover:bg-soul-gold-dim active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-ghost {
-    @apply text-soul-ivory-dim hover:text-soul-ivory hover:bg-soul-surface px-3 py-2 rounded-lg transition-colors;
+    @apply text-soul-ivory-dim hover:text-soul-ivory hover:bg-white/5
+           px-3 py-2 rounded-xl transition-colors;
   }
+  .btn-danger {
+    @apply text-rose-400 hover:text-rose-300 hover:bg-rose-900/20
+           px-3 py-2 rounded-xl transition-colors;
+  }
+
+  /* ── Inputs ── */
   .input-soul {
-    @apply bg-soul-surface border border-soul-border rounded-lg px-4 py-3 text-soul-ivory placeholder-soul-ivory-dim focus:outline-none focus:border-soul-gold transition-colors w-full;
+    @apply bg-soul-surface border border-soul-border rounded-xl px-4 py-3
+           text-soul-ivory placeholder-soul-ivory-dim
+           focus:outline-none focus:ring-2 focus:ring-soul-gold/30 focus:border-soul-gold
+           transition-all duration-150 w-full;
   }
+
+  /* ── Badges ── */
   .badge {
-    @apply text-xs px-2 py-0.5 rounded-full font-medium;
+    @apply text-xs px-2.5 py-0.5 rounded-full font-medium tracking-wide;
+  }
+
+  /* ── Section headings ── */
+  .section-heading {
+    @apply font-serif text-2xl text-soul-ivory font-semibold;
+  }
+  .section-subheading {
+    @apply text-soul-ivory-dim text-sm;
+  }
+
+  /* ── Page container ── */
+  .page {
+    @apply flex flex-col gap-6 min-h-full;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    @apply border-t border-soul-border my-2;
   }
 }
