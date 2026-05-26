@@ -6,22 +6,25 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.deps import get_current_user
 from db.postgres import get_db
-from models.orm import Entry, LifeEvent, Pattern, Idea
+from models.orm import Entry, LifeEvent, Pattern, Idea, User
 from models.schemas import InsightItem
 
 router = APIRouter()
-DEFAULT_USER = "default"
 
 
 @router.get("", response_model=list[InsightItem])
-async def get_insights(db: AsyncSession = Depends(get_db)):
+async def get_insights(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     insights: list[InsightItem] = []
     today = date.today()
 
     # 1. Upcoming events in next 14 days
     result = await db.execute(
-        select(LifeEvent).where(LifeEvent.user_id == DEFAULT_USER)
+        select(LifeEvent).where(LifeEvent.user_id == current_user.id)
     )
     for event in result.scalars().all():
         check = event.event_date
@@ -44,7 +47,7 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
     # 2. Latest pattern detected
     result = await db.execute(
         select(Pattern)
-        .where(Pattern.user_id == DEFAULT_USER)
+        .where(Pattern.user_id == current_user.id)
         .order_by(desc(Pattern.detected_at))
         .limit(2)
     )
@@ -62,7 +65,7 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
     week_end = one_year_ago + timedelta(days=3)
     result = await db.execute(
         select(Entry).where(
-            Entry.user_id == DEFAULT_USER,
+            Entry.user_id == current_user.id,
             Entry.created_at >= week_start,
             Entry.created_at <= week_end,
             Entry.life_relevance_score >= 0.7,
@@ -81,7 +84,7 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
     # 4. Recurring idea (mention_count > 1)
     result = await db.execute(
         select(Idea).where(
-            Idea.user_id == DEFAULT_USER,
+            Idea.user_id == current_user.id,
             Idea.mention_count > 1,
             Idea.status == "raw",
         ).order_by(desc(Idea.mention_count)).limit(1)
@@ -100,10 +103,13 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/patterns", response_model=list[dict])
-async def get_patterns(db: AsyncSession = Depends(get_db)):
+async def get_patterns(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(
         select(Pattern)
-        .where(Pattern.user_id == DEFAULT_USER)
+        .where(Pattern.user_id == current_user.id)
         .order_by(desc(Pattern.detected_at))
         .limit(20)
     )
@@ -121,10 +127,13 @@ async def get_patterns(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/psychology")
-async def get_psychology_profile(db: AsyncSession = Depends(get_db)):
+async def get_psychology_profile(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     from models.orm import PsychologyProfile
     result = await db.execute(
-        select(PsychologyProfile).where(PsychologyProfile.user_id == DEFAULT_USER)
+        select(PsychologyProfile).where(PsychologyProfile.user_id == current_user.id)
     )
     profile = result.scalar_one_or_none()
     if not profile:

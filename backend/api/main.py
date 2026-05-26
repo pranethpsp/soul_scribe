@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import entries, oracle, people, insights, admin
+from api.routes import entries, oracle, people, insights, admin, auth
 from db.postgres import init_db, engine
 from db.milvus_client import get_milvus
 from observability.otel_setup import init_otel
@@ -41,6 +41,7 @@ app.add_middleware(
 # Instrument BEFORE first request — must be called at module level, not inside lifespan
 init_otel(app=app, engine=engine)
 
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(entries.router, prefix="/api/entries", tags=["entries"])
 app.include_router(oracle.router, prefix="/api/oracle", tags=["oracle"])
 app.include_router(people.router, prefix="/api/people", tags=["people"])

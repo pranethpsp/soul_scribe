@@ -24,9 +24,11 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, default=_uuid)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    display_name = Column(String(100))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     timezone = Column(String(50), default="UTC")
-    display_name = Column(String(100))
 
     entries = relationship("Entry", back_populates="user", cascade="all, delete-orphan")
     people = relationship("Person", back_populates="user", cascade="all, delete-orphan")

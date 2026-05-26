@@ -7,14 +7,13 @@ from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.orchestrator import handle_journal
+from auth.deps import get_current_user
 from db.postgres import get_db
 from db.milvus_client import get_milvus, SoulMilvus
-from models.orm import Entry
+from models.orm import Entry, User
 from models.schemas import EntryCreate, EntryOut
 
 router = APIRouter()
-
-DEFAULT_USER = "default"
 
 
 @router.post("", response_model=dict)
@@ -22,8 +21,9 @@ async def create_entry(
     body: EntryCreate,
     db: AsyncSession = Depends(get_db),
     milvus: SoulMilvus = Depends(get_milvus),
+    current_user: User = Depends(get_current_user),
 ):
-    result = await handle_journal(body.raw_content, DEFAULT_USER, db, milvus)
+    result = await handle_journal(body.raw_content, current_user.id, db, milvus)
     return result
 
 
@@ -33,9 +33,10 @@ async def list_entries(
     offset: int = Query(0),
     entry_type: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     q = select(Entry).where(
-        Entry.user_id == DEFAULT_USER, Entry.is_archived == False
+        Entry.user_id == current_user.id, Entry.is_archived == False
     ).order_by(desc(Entry.created_at)).limit(limit).offset(offset)
 
     if entry_type:
@@ -47,8 +48,14 @@ async def list_entries(
 
 
 @router.get("/{entry_id}", response_model=EntryOut)
-async def get_entry(entry_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Entry).where(Entry.id == entry_id))
+async def get_entry(
+    entry_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Entry).where(Entry.id == entry_id, Entry.user_id == current_user.id)
+    )
     entry = result.scalar_one_or_none()
     if not entry:
         raise HTTPException(404, "Entry not found")
@@ -60,8 +67,11 @@ async def delete_entry(
     entry_id: str,
     db: AsyncSession = Depends(get_db),
     milvus: SoulMilvus = Depends(get_milvus),
+    current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Entry).where(Entry.id == entry_id))
+    result = await db.execute(
+        select(Entry).where(Entry.id == entry_id, Entry.user_id == current_user.id)
+    )
     entry = result.scalar_one_or_none()
     if not entry:
         raise HTTPException(404, "Entry not found")

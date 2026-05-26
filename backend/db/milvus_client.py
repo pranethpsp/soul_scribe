@@ -128,7 +128,7 @@ class SoulMilvus:
         return vid
 
     def search_entries(self, user_id: str, embedding: list[float],
-                       top_k: int = 10, min_score: float = 0.55) -> list[dict]:
+                       top_k: int = 10, min_score: float = 0.2) -> list[dict]:
         results = self._client.search(
             collection_name="user_entries",
             data=[embedding],
@@ -144,7 +144,7 @@ class SoulMilvus:
         return hits
 
     def search_knowledge(self, embedding: list[float], top_k: int = 6,
-                          min_score: float = 0.55) -> list[dict]:
+                          min_score: float = 0.3) -> list[dict]:
         results = self._client.search(
             collection_name="knowledge_vault",
             data=[embedding],

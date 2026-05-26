@@ -7,21 +7,25 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.orchestrator import handle_person_brief
+from auth.deps import get_current_user
 from db.postgres import get_db
 from db.milvus_client import get_milvus, SoulMilvus
-from models.orm import Person, LifeEvent
+from models.orm import Person, LifeEvent, User
 from models.schemas import PersonCreate, PersonOut, LifeEventOut
 
 router = APIRouter()
-DEFAULT_USER = "default"
 
 
 @router.post("", response_model=PersonOut)
-async def create_person(body: PersonCreate, db: AsyncSession = Depends(get_db)):
+async def create_person(
+    body: PersonCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     import uuid
     person = Person(
         id=str(uuid.uuid4()),
-        user_id=DEFAULT_USER,
+        user_id=current_user.id,
         name=body.name,
         relationship_type=body.relationship_type,
         birthday=body.birthday,
@@ -32,7 +36,7 @@ async def create_person(body: PersonCreate, db: AsyncSession = Depends(get_db)):
     if body.birthday:
         event = LifeEvent(
             id=str(uuid.uuid4()),
-            user_id=DEFAULT_USER,
+            user_id=current_user.id,
             title=f"{body.name}'s Birthday",
             event_date=body.birthday,
             recurs_yearly=True,
@@ -47,9 +51,12 @@ async def create_person(body: PersonCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("", response_model=list[PersonOut])
-async def list_people(db: AsyncSession = Depends(get_db)):
+async def list_people(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(
-        select(Person).where(Person.user_id == DEFAULT_USER).order_by(Person.name)
+        select(Person).where(Person.user_id == current_user.id).order_by(Person.name)
     )
     return [PersonOut.model_validate(p) for p in result.scalars().all()]
 
@@ -59,20 +66,27 @@ async def get_brief(
     person_id: str,
     db: AsyncSession = Depends(get_db),
     milvus: SoulMilvus = Depends(get_milvus),
+    current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Person).where(Person.id == person_id))
+    result = await db.execute(
+        select(Person).where(Person.id == person_id, Person.user_id == current_user.id)
+    )
     person = result.scalar_one_or_none()
     if not person:
         raise HTTPException(404, "Person not found")
-    return await handle_person_brief(person.name, DEFAULT_USER, db, milvus)
+    return await handle_person_brief(person.name, current_user.id, db, milvus)
 
 
 @router.get("/upcoming-events", response_model=list[LifeEventOut])
-async def upcoming_events(days: int = 30, db: AsyncSession = Depends(get_db)):
+async def upcoming_events(
+    days: int = 30,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     today = date.today()
     cutoff = today + timedelta(days=days)
     result = await db.execute(
-        select(LifeEvent).where(LifeEvent.user_id == DEFAULT_USER)
+        select(LifeEvent).where(LifeEvent.user_id == current_user.id)
     )
     events = result.scalars().all()
 

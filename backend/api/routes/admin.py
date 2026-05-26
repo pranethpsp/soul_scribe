@@ -9,9 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents import knowledge_vault
 from agents.orchestrator import run_pattern_analysis
+from auth.deps import get_current_user
 from db.postgres import get_db
 from db.milvus_client import get_milvus, SoulMilvus
-from models.orm import KnowledgeSource, ResponseMetric
+from models.orm import KnowledgeSource, ResponseMetric, User
 from models.schemas import KnowledgeSourceCreate, KnowledgeSourceOut
 
 router = APIRouter()
@@ -35,6 +36,7 @@ async def upload_knowledge(
     x_admin_secret: str = Form(""),
     db: AsyncSession = Depends(get_db),
     milvus: SoulMilvus = Depends(get_milvus),
+    current_user: User = Depends(get_current_user),
 ):
     _require_admin(x_admin_secret)
 
@@ -68,6 +70,7 @@ async def upload_knowledge(
 async def list_vault(
     x_admin_secret: str = "",
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     _require_admin(x_admin_secret)
     result = await db.execute(select(KnowledgeSource).order_by(KnowledgeSource.added_at.desc()))
@@ -80,6 +83,7 @@ async def remove_knowledge(
     x_admin_secret: str = "",
     db: AsyncSession = Depends(get_db),
     milvus: SoulMilvus = Depends(get_milvus),
+    current_user: User = Depends(get_current_user),
 ):
     _require_admin(x_admin_secret)
     await knowledge_vault.remove(source_id, db, milvus)
@@ -90,9 +94,10 @@ async def remove_knowledge(
 async def trigger_pattern_analysis(
     x_admin_secret: str = "",
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     _require_admin(x_admin_secret)
-    await run_pattern_analysis("default", db)
+    await run_pattern_analysis(current_user.id, db)
     return {"status": "pattern analysis complete"}
 
 
@@ -101,6 +106,7 @@ async def get_metrics(
     limit: int = 50,
     x_admin_secret: str = "",
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     _require_admin(x_admin_secret)
     result = await db.execute(

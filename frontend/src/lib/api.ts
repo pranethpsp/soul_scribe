@@ -1,15 +1,62 @@
-import type { Entry, InsightItem, Pattern, Person, ConfidenceReport } from './types'
+import type { Entry, InsightItem, Pattern, Person, ConfidenceReport, AuthUser } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
 const ADMIN_SECRET = (import.meta.env.VITE_ADMIN_SECRET as string | undefined) ?? 'dev_admin_secret'
 
+function getToken(): string | null {
+  return localStorage.getItem('soul_token')
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, init)
+  const token = getToken()
+  const headers: Record<string, string> = {}
+
+  // Only set Content-Type for JSON — let browser set it for FormData (with boundary)
+  if (!(init?.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: { ...headers, ...(init?.headers || {}) },
+  })
+
+  if (res.status === 401) {
+    localStorage.removeItem('soul_token')
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
+
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`${res.status}: ${text}`)
   }
+
   return res.json() as Promise<T>
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export function login(username: string, password: string) {
+  return request<{ token: string; user: AuthUser }>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  })
+}
+
+export function register(username: string, password: string, display_name: string) {
+  return request<{ token: string; user: AuthUser }>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ username, password, display_name }),
+  })
+}
+
+export function getMe() {
+  return request<AuthUser>('/api/auth/me')
 }
 
 // ── Entries ───────────────────────────────────────────────────────────────────
@@ -25,7 +72,6 @@ export function listEntries(params?: { limit?: number; offset?: number; entry_ty
 export function createEntry(raw_content: string) {
   return request<Record<string, unknown>>('/api/entries', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ raw_content }),
   })
 }
@@ -35,7 +81,6 @@ export function createEntry(raw_content: string) {
 export function chat(text: string, conversationId: string) {
   return request<Record<string, unknown>>('/api/oracle/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question: text, conversation_id: conversationId }),
   })
 }
@@ -68,7 +113,6 @@ export function createPerson(body: {
 }) {
   return request<Person>('/api/people', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
 }
