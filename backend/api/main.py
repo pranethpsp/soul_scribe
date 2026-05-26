@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import entries, oracle, people, insights, admin, auth
+from api.routes import entries, oracle, people, insights, admin, auth, library
 from db.postgres import init_db, engine
 from db.milvus_client import get_milvus
 from observability.otel_setup import init_otel
@@ -47,6 +47,7 @@ app.include_router(oracle.router, prefix="/api/oracle", tags=["oracle"])
 app.include_router(people.router, prefix="/api/people", tags=["people"])
 app.include_router(insights.router, prefix="/api/insights", tags=["insights"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(library.router, prefix="/api/library", tags=["library"])
 
 
 @app.get("/health")

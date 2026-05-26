@@ -54,6 +54,16 @@ export interface Person {
   last_interaction: string | null
 }
 
+export interface PersonBrief {
+  name: string
+  relationship_summary: string
+  key_facts: string[]
+  memorable_moments: string[]
+  upcoming_events: string[]
+  last_mentioned: string
+  suggested_topics: string[]
+}
+
 export interface InsightItem {
   type: 'upcoming_event' | 'pattern' | 'memory_anniversary' | 'dormant_connection' | 'recurring_idea'
   title: string

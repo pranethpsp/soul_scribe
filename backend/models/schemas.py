@@ -58,6 +58,13 @@ class PersonCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class PersonUpdate(BaseModel):
+    name: Optional[str] = None
+    relationship_type: Optional[RelationshipType] = None
+    birthday: Optional[date] = None
+    notes: Optional[str] = None
+
+
 class PersonOut(BaseModel):
     id: str
     name: str

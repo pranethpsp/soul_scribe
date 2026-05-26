@@ -1,4 +1,4 @@
-import type { Entry, InsightItem, Pattern, Person, ConfidenceReport, AuthUser } from './types'
+import type { Entry, InsightItem, Pattern, Person, PersonBrief, ConfidenceReport, AuthUser } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
 const ADMIN_SECRET = (import.meta.env.VITE_ADMIN_SECRET as string | undefined) ?? 'dev_admin_secret'
@@ -117,8 +117,19 @@ export function createPerson(body: {
   })
 }
 
+export function updatePerson(personId: string, body: Partial<{ name: string; relationship_type: string; birthday: string; notes: string }>) {
+  return request<Person>(`/api/people/${personId}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  })
+}
+
+export function deletePerson(personId: string) {
+  return request<void>(`/api/people/${personId}`, { method: 'DELETE' })
+}
+
 export function getPersonBrief(personId: string) {
-  return request<Record<string, unknown>>(`/api/people/${personId}/brief`)
+  return request<{ type: string; brief: PersonBrief }>(`/api/people/${personId}/brief`)
 }
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -151,4 +162,18 @@ export function triggerPatternAnalysis() {
 
 export function getMetrics() {
   return request<Record<string, unknown>[]>(`/api/admin/metrics?x_admin_secret=${ADMIN_SECRET}`)
+}
+
+// ── Knowledge Library (all users) ─────────────────────────────────────────────
+
+export function listLibrary() {
+  return request<Record<string, unknown>[]>('/api/library')
+}
+
+export function uploadLibrary(formData: FormData) {
+  return request<Record<string, unknown>>('/api/library', { method: 'POST', body: formData })
+}
+
+export function removeFromLibrary(sourceId: string) {
+  return request<void>(`/api/library/${sourceId}`, { method: 'DELETE' })
 }

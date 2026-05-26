@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { format, parseISO } from 'date-fns'
-import { Clock } from 'lucide-react'
+import { format, parseISO, isSameDay } from 'date-fns'
+import { Clock, CalendarDays, X } from 'lucide-react'
 import { listEntries } from '../lib/api'
 import type { Entry, EntryType } from '../lib/types'
 
@@ -28,13 +28,16 @@ const ENTRY_DOT_COLORS: Record<EntryType, string> = {
   emotion_log: 'bg-rose-400',
 }
 
-const FILTER_OPTIONS: { label: string; value: string }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Memories', value: 'memory' },
-  { label: 'Lessons', value: 'lesson' },
-  { label: 'Ideas', value: 'idea' },
-  { label: 'Milestones', value: 'milestone' },
-]
+const TYPE_LABELS: Record<string, string> = {
+  thought:     'Thoughts',
+  memory:      'Memories',
+  lesson:      'Lessons',
+  idea:        'Ideas',
+  event:       'Events',
+  person_note: 'People',
+  milestone:   'Milestones',
+  emotion_log: 'Emotions',
+}
 
 function groupByMonth(entries: Entry[]): Map<string, Entry[]> {
   const map = new Map<string, Entry[]>()
@@ -106,44 +109,101 @@ function TimelineEntry({ entry, index }: { entry: Entry; index: number }) {
 }
 
 export default function Timeline() {
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter]       = useState('all')
+  const [dateFilter, setDateFilter] = useState('')   // ISO date string YYYY-MM-DD
 
   const { data: entries = [], isLoading } = useQuery({
-    queryKey: ['entries', { limit: 100 }],
-    queryFn: () => listEntries({ limit: 100 }),
+    queryKey: ['entries', { limit: 200 }],
+    queryFn: () => listEntries({ limit: 200 }),
   })
 
-  const filtered =
-    filter === 'all' ? entries : entries.filter((e) => e.entry_type === filter)
+  // Build filter tabs from types that actually exist in the data
+  const typeCounts = entries.reduce<Record<string, number>>((acc, e) => {
+    acc[e.entry_type] = (acc[e.entry_type] ?? 0) + 1
+    return acc
+  }, {})
+
+  const filterOptions = [
+    { label: 'All', value: 'all', count: entries.length },
+    ...Object.entries(typeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => ({
+        label: TYPE_LABELS[type] ?? type.replace('_', ' '),
+        value: type,
+        count,
+      })),
+  ]
+
+  // Apply both type filter and date filter
+  let filtered = filter === 'all' ? entries : entries.filter(e => e.entry_type === filter)
+  if (dateFilter) {
+    const pickedDate = parseISO(dateFilter)
+    filtered = filtered.filter(e => isSameDay(parseISO(e.created_at), pickedDate))
+  }
 
   const groups = groupByMonth(filtered)
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <Clock className="w-5 h-5 text-soul-gold" />
-          <h1 className="font-serif text-2xl text-soul-ivory">Timeline</h1>
-        </div>
+      <div className="flex items-center gap-3">
+        <Clock className="w-5 h-5 text-soul-gold" />
+        <h1 className="font-serif text-2xl text-soul-ivory">Timeline</h1>
+      </div>
 
-        {/* Filter bar */}
-        <div className="flex gap-1 bg-soul-surface border border-soul-border rounded-lg p-1">
-          {FILTER_OPTIONS.map((opt) => (
+      {/* Date picker */}
+      {!isLoading && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 bg-soul-surface border border-soul-border rounded-xl px-3 py-2">
+            <CalendarDays className="w-4 h-4 text-soul-gold shrink-0" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              className="bg-transparent text-soul-ivory text-sm focus:outline-none"
+            />
+          </div>
+          {dateFilter && (
+            <button
+              onClick={() => setDateFilter('')}
+              className="flex items-center gap-1.5 text-sm text-soul-ivory-dim hover:text-soul-ivory transition-colors"
+            >
+              <X className="w-3.5 h-3.5" /> Clear date
+            </button>
+          )}
+          {dateFilter && (
+            <span className="text-soul-ivory-dim text-sm">
+              {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'} on {format(parseISO(dateFilter), 'MMMM d, yyyy')}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Type filter tabs — built from actual data */}
+      {!isLoading && entries.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {filterOptions.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setFilter(opt.value)}
-              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                 filter === opt.value
-                  ? 'bg-soul-gold text-soul-bg font-medium'
-                  : 'text-soul-ivory-dim hover:text-soul-ivory'
+                  ? 'bg-soul-gold text-soul-bg font-semibold'
+                  : 'bg-soul-surface border border-soul-border text-soul-ivory-dim hover:text-soul-ivory hover:border-soul-gold/40'
               }`}
             >
               {opt.label}
+              <span className={`text-xs rounded-full px-1.5 py-0.5 ${
+                filter === opt.value
+                  ? 'bg-soul-bg/20 text-soul-bg'
+                  : 'bg-soul-border text-soul-ivory-dim'
+              }`}>
+                {opt.count}
+              </span>
             </button>
           ))}
         </div>
-      </div>
+      )}
 
       {isLoading && (
         <div className="flex items-center justify-center py-20">

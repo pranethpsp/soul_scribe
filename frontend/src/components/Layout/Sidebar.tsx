@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BookOpen, MessageCircle, Clock, Users, Lightbulb, TrendingUp, Settings, X, LogOut } from 'lucide-react'
+import { BookOpen, MessageCircle, Clock, Users, Lightbulb, TrendingUp, Settings, X, LogOut, Library } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../lib/AuthContext'
 
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/people',   icon: Users,          label: 'People' },
   { to: '/ideas',    icon: Lightbulb,      label: 'Ideas' },
   { to: '/patterns', icon: TrendingUp,     label: 'Patterns' },
+  { to: '/library',  icon: Library,        label: 'Library' },
 ]
 
 interface SidebarProps {

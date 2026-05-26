@@ -8,6 +8,7 @@ import People from './pages/People'
 import Ideas from './pages/Ideas'
 import Patterns from './pages/Patterns'
 import Admin from './pages/Admin'
+import Library from './pages/Library'
 import Login from './pages/Login'
 import Register from './pages/Register'
 
@@ -51,6 +52,7 @@ function AppRoutes() {
         <Route path="people" element={<People />} />
         <Route path="ideas" element={<Ideas />} />
         <Route path="patterns" element={<Patterns />} />
+        <Route path="library" element={<Library />} />
         {ADMIN_MODE && <Route path="admin" element={<Admin />} />}
       </Route>
 

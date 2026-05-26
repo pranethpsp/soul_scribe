@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from agents import journal_intelligence, oracle, pattern, memory_curator, decision_coach
+from agents.people_extractor import extract_people
 from agents.pii_guardian import guard
 from confidence.scorer import ConfidenceScorer
 from db.milvus_client import SoulMilvus
@@ -131,6 +132,10 @@ async def handle_journal(
         # 5. Update ideas if entry_type == "idea"
         if extracted.entry_type == "idea" and extracted.key_insight:
             await _upsert_idea(db, user_id, extracted.key_insight, entry.id)
+
+        # 6. Auto-upsert people mentioned with relationship context
+        if extracted.people_mentioned:
+            await _auto_upsert_people(pii_result.cleaned_text, user_id, db)
 
         await db.commit()
 
@@ -347,3 +352,32 @@ async def _upsert_idea(db: AsyncSession, user_id: str, title: str, entry_id: str
             title=title[:200],
             related_entry_ids=[entry_id],
         ))
+
+
+async def _auto_upsert_people(text: str, user_id: str, db: AsyncSession) -> None:
+    from datetime import date
+    from sqlalchemy import func
+
+    mentions = await extract_people(text)
+    if not mentions:
+        return
+
+    today = date.today()
+    for mention in mentions:
+        result = await db.execute(
+            select(Person).where(
+                Person.user_id == user_id,
+                func.lower(Person.name) == mention.name.strip().lower(),
+            )
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            existing.last_interaction = today
+        else:
+            db.add(Person(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                name=mention.name.strip(),
+                relationship_type=mention.relationship_type,
+                last_interaction=today,
+            ))
