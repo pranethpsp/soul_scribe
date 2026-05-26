@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-soul-bg text-soul-ivory font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-serif;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-soul-border rounded-full; }
+}
+
+@layer components {
+  .card {
+    @apply bg-soul-surface border border-soul-border rounded-xl p-4;
+  }
+  .btn-gold {
+    @apply bg-soul-gold text-soul-bg font-medium px-4 py-2 rounded-lg hover:bg-soul-gold-dim transition-colors;
+  }
+  .btn-ghost {
+    @apply text-soul-ivory-dim hover:text-soul-ivory hover:bg-soul-surface px-3 py-2 rounded-lg transition-colors;
+  }
+  .input-soul {
+    @apply bg-soul-surface border border-soul-border rounded-lg px-4 py-3 text-soul-ivory placeholder-soul-ivory-dim focus:outline-none focus:border-soul-gold transition-colors w-full;
+  }
+  .badge {
+    @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  }
+}

@@ -216,3 +216,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node
+node_modules/
+frontend/dist/
+.vite/
+
+# Uploads
+backend/uploads/
+
+# IDE
+.vscode/
+.idea/
+
